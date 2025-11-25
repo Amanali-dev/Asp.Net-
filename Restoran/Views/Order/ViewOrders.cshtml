@@ -1,0 +1,35 @@
+﻿@using Restoran.Models
+@model IEnumerable<Order>
+
+<h2>Your Orders</h2>
+
+@if (!Model.Any())
+{
+    <p>No orders yet.</p>
+}
+else
+{
+    foreach (var order in Model)
+    {
+        <div class="card mb-3">
+            <div class="card-header">
+                <strong>Order ID:</strong> @order.OrderId
+                <span class="float-end"><strong>Date:</strong> @order.OrderDate</span>
+            </div>
+
+            <div class="card-body">
+                <ul class="list-group">
+                    @foreach (var item in order.OrderItems)
+                    {
+                        <li class="list-group-item d-flex justify-content-between">
+                            @item.Product.Name (x @item.Quantity)
+                            <span>Rs @(item.Price* item.Quantity)</span>
+                        </li>
+                    }
+                </ul>
+
+                <h5 class="mt-3">Total: Rs @order.TotalAmount</h5>
+            </div>
+        </div>
+    }
+}

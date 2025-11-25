@@ -1,0 +1,54 @@
+﻿@* @model Restoran.Models.OrderViewModel
+@{
+    ViewData["Title"] = "Your Cart";
+}
+
+<h2>Your Cart</h2>
+
+@if (Model.OrderItems == null || !Model.OrderItems.Any())
+{
+    <div class="alert alert-info">
+        Your cart is empty. <a asp-action="Create">Go back to products</a>
+    </div>
+}
+else
+{
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Product</th>
+                <th style="width:120px">Quantity</th>
+                <th style="width:120px">Price</th>
+                <th style="width:120px">Total</th>
+                <th style="width:120px">Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model.OrderItems)
+            {
+                <tr>
+                    <td>@item.ProductName</td>
+                    <td>@item.Quantity</td>
+                    <td>@item.Price.ToString("0.00")</td>
+                    <td>@(item.Price* item.Quantity).ToString("0.00")</td>
+                    <td>
+                        <form asp-action="RemoveItem" method="post" onsubmit="return confirm('Remove this item from cart?');">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="prodId" value="@item.ProductId" />
+                            <button type="submit" class="btn btn-danger btn-sm">Remove</button>
+                        </form>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    <div class="d-flex justify-content-between align-items-center">
+        <h4>Total Amount: <span class="text-primary">@Model.TotalAmount.ToString("0.00")</span></h4>
+
+        <form asp-action="PlaceOrder" method="post" onsubmit="return confirm('Place the order?');">
+            @Html.AntiForgeryToken()
+            <button type="submit" class="btn btn-success">Place Order</button>
+        </form>
+    </div>
+} *@
