@@ -11,6 +11,7 @@ namespace Restoran.Data
             : base(options)
         {
         }
+        public DbSet<ChatMessage> ChatMessages { get; set; }
 
         public DbSet<Ingredient> Ingredients { get; set; }
         public DbSet<ProductIngredient> ProductIngredients { get; set; }

@@ -1,154 +1,134 @@
-﻿@{
-    ViewData["Title"] = "Live Chat";
-}
-
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500&display=swap" rel="stylesheet">
+﻿@model List<ChatMessage>
 
 <style>
-    body {
-        background: #f0f2f5;
-        font-family: 'Poppins', sans-serif;
-    }
-
-    .chat-container {
-        width: 100%;
+    /* Chat-specific styles only */
+    #chat-container {
         max-width: 600px;
+        margin: 20px auto;
+        border: 1px solid #ccc;
+        border-radius: 10px;
         background: #fff;
-        margin: 40px auto;
-        border-radius: 12px;
-        padding: 20px;
-        box-shadow: 0 4px 20px rgba(0,0,0,0.1);
-    }
-
-    .chat-header {
-        font-size: 22px;
-        font-weight: 600;
-        margin-bottom: 15px;
-        text-align: center;
-        border-bottom: 2px solid #eee;
-        padding-bottom: 10px;
-    }
-
-    #messagesList {
-        list-style: none;
-        padding: 0;
-        height: 350px;
-        overflow-y: auto;
-        background: #fafafa;
-        border-radius: 8px;
-        border: 1px solid #ddd;
-        padding: 15px;
-    }
-
-        #messagesList li {
-            margin-bottom: 12px;
-            padding: 10px 14px;
-            display: inline-block;
-            max-width: 80%;
-            border-radius: 7px;
-            font-size: 14px;
-        }
-
-    .me {
-        background: #0084ff;
-        color: #fff;
-        margin-left: auto;
-        display: block;
-    }
-
-    .other {
-        background: #e4e6eb;
-        color: #000;
-        display: block;
-    }
-
-    .input-box {
-        margin-top: 20px;
         display: flex;
-        gap: 10px;
+        flex-direction: column;
+        height: 500px;
     }
 
-        .input-box input, .input-box textarea {
-            width: 100%;
-            padding: 12px;
-            border: 1px solid #ccc;
-            border-radius: 8px;
-            font-size: 14px;
+    #messages {
+        flex: 1;
+        padding: 10px;
+        overflow-y: auto;
+        font-family: Arial, sans-serif;
+    }
+
+    .message {
+        padding: 6px 10px;
+        margin-bottom: 5px;
+        border-radius: 8px;
+        word-wrap: break-word;
+    }
+
+        .message.self {
+            background: #d1ffd6;
+            align-self: flex-end;
         }
 
-    textarea {
-        height: 45px;
-        resize: none;
+        .message.other {
+            background: #f0f0f0;
+            align-self: flex-start;
+        }
+
+    .timestamp {
+        font-size: 10px;
+        color: gray;
+        margin-left: 5px;
     }
 
-    .send-btn {
-        padding: 12px 18px;
-        border: none;
-        background: #0084ff;
-        color: white;
-        border-radius: 8px;
-        cursor: pointer;
-        font-weight: 500;
-        transition: 0.3s;
+    #typing {
+        font-size: 12px;
+        color: gray;
+        padding: 5px 10px;
+        height: 18px;
     }
 
-        .send-btn:hover {
-            background: #006cd8;
+    #input-container {
+        display: flex;
+        border-top: 1px solid #ddd;
+        padding: 5px 10px;
+        gap: 5px;
+    }
+
+        #input-container input[type="text"] {
+            flex: 1;
+            padding: 6px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+
+        #input-container button {
+            padding: 6px 15px;
+            border-radius: 5px;
+            border: none;
+            background-color: #4CAF50;
+            color: white;
+            cursor: pointer;
         }
 </style>
 
-<div class="chat-container">
-    <div class="chat-header">Live Chat</div>
+<div id="chat-container">
+    <div id="messages">
+        @foreach (var m in Model)
+        {
+            var cls = m.User == "YourName" ? "self" : "other";
+            <div class="message @cls">
+                <strong>@m.User</strong>: @m.Message
+                <span class="timestamp">(@m.Timestamp.ToString("hh:mm tt"))</span>
+            </div>
+        }
+    </div>
 
-    <input id="user" placeholder="Enter your name" class="form-control" />
+    <div id="typing">Someone is typing...</div>
 
-    <ul id="messagesList"></ul>
-
-    <div class="input-box">
-        <textarea id="message" placeholder="Write a message..."></textarea>
-        <button id="sendButton" class="send-btn">Send</button>
+    <div id="input-container">
+        <input type="text" id="username" placeholder="Your name" />
+        <input type="text" id="message" placeholder="Type a message..." />
+        <button id="sendBtn">Send</button>
     </div>
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/7.0.5/signalr.min.js"></script>
-
 <script>
     const connection = new signalR.HubConnectionBuilder()
         .withUrl("/chatHub")
         .build();
 
-    connection.start().catch(err => console.error(err));
+    connection.start();
 
-    document.getElementById("sendButton").addEventListener("click", function () {
-        const user = document.getElementById("user").value;
-        const message = document.getElementById("message").value;
+    connection.on("ReceiveMessage", (user, message, time) => {
+        const msgDiv = document.createElement("div");
+        const cls = user === document.getElementById("username").value ? "self" : "other";
+        msgDiv.className = "message " + cls;
+        msgDiv.innerHTML = `<strong>${user}</strong>: ${message} <span class="timestamp">(${time})</span>`;
+        document.getElementById("messages").appendChild(msgDiv);
+        document.getElementById("messages").scrollTop = document.getElementById("messages").scrollHeight;
+    });
 
-        if (message.trim() === "") return;
+    connection.on("UserTyping", user => {
+        const t = document.getElementById("typing");
+        t.innerText = user + " is typing...";
+        t.style.display = "block";
+        setTimeout(() => t.style.display = "none", 2000);
+    });
 
-        connection.invoke("SendMessage", user, message);
-        addMessage(user, message, true);
-
+    document.getElementById("sendBtn").addEventListener("click", () => {
+        const user = document.getElementById("username").value;
+        const msg = document.getElementById("message").value;
+        if(msg.trim() === "") return;
+        connection.invoke("SendMessage", user, msg);
         document.getElementById("message").value = "";
     });
 
-    connection.on("ReceiveMessage", function (user, message) {
-        addMessage(user, message, false);
+    document.getElementById("message").addEventListener("input", () => {
+        const user = document.getElementById("username").value;
+        connection.invoke("Typing", user);
     });
-
-    function addMessage(user, message, isMe) {
-        const li = document.createElement("li");
-
-        if (isMe) {
-            li.className = "me";
-        } else {
-            li.className = "other";
-        }
-
-        li.textContent = user + ": " + message;
-        document.getElementById("messagesList").appendChild(li);
-
-        // Auto scroll
-        const msgList = document.getElementById("messagesList");
-        msgList.scrollTop = msgList.scrollHeight;
-    }
 </script>
