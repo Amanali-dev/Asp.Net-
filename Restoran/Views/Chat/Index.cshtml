@@ -1,0 +1,154 @@
+﻿@{
+    ViewData["Title"] = "Live Chat";
+}
+
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500&display=swap" rel="stylesheet">
+
+<style>
+    body {
+        background: #f0f2f5;
+        font-family: 'Poppins', sans-serif;
+    }
+
+    .chat-container {
+        width: 100%;
+        max-width: 600px;
+        background: #fff;
+        margin: 40px auto;
+        border-radius: 12px;
+        padding: 20px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+    }
+
+    .chat-header {
+        font-size: 22px;
+        font-weight: 600;
+        margin-bottom: 15px;
+        text-align: center;
+        border-bottom: 2px solid #eee;
+        padding-bottom: 10px;
+    }
+
+    #messagesList {
+        list-style: none;
+        padding: 0;
+        height: 350px;
+        overflow-y: auto;
+        background: #fafafa;
+        border-radius: 8px;
+        border: 1px solid #ddd;
+        padding: 15px;
+    }
+
+        #messagesList li {
+            margin-bottom: 12px;
+            padding: 10px 14px;
+            display: inline-block;
+            max-width: 80%;
+            border-radius: 7px;
+            font-size: 14px;
+        }
+
+    .me {
+        background: #0084ff;
+        color: #fff;
+        margin-left: auto;
+        display: block;
+    }
+
+    .other {
+        background: #e4e6eb;
+        color: #000;
+        display: block;
+    }
+
+    .input-box {
+        margin-top: 20px;
+        display: flex;
+        gap: 10px;
+    }
+
+        .input-box input, .input-box textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+
+    textarea {
+        height: 45px;
+        resize: none;
+    }
+
+    .send-btn {
+        padding: 12px 18px;
+        border: none;
+        background: #0084ff;
+        color: white;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: 500;
+        transition: 0.3s;
+    }
+
+        .send-btn:hover {
+            background: #006cd8;
+        }
+</style>
+
+<div class="chat-container">
+    <div class="chat-header">Live Chat</div>
+
+    <input id="user" placeholder="Enter your name" class="form-control" />
+
+    <ul id="messagesList"></ul>
+
+    <div class="input-box">
+        <textarea id="message" placeholder="Write a message..."></textarea>
+        <button id="sendButton" class="send-btn">Send</button>
+    </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/7.0.5/signalr.min.js"></script>
+
+<script>
+    const connection = new signalR.HubConnectionBuilder()
+        .withUrl("/chatHub")
+        .build();
+
+    connection.start().catch(err => console.error(err));
+
+    document.getElementById("sendButton").addEventListener("click", function () {
+        const user = document.getElementById("user").value;
+        const message = document.getElementById("message").value;
+
+        if (message.trim() === "") return;
+
+        connection.invoke("SendMessage", user, message);
+        addMessage(user, message, true);
+
+        document.getElementById("message").value = "";
+    });
+
+    connection.on("ReceiveMessage", function (user, message) {
+        addMessage(user, message, false);
+    });
+
+    function addMessage(user, message, isMe) {
+        const li = document.createElement("li");
+
+        if (isMe) {
+            li.className = "me";
+        } else {
+            li.className = "other";
+        }
+
+        li.textContent = user + ": " + message;
+        document.getElementById("messagesList").appendChild(li);
+
+        // Auto scroll
+        const msgList = document.getElementById("messagesList");
+        msgList.scrollTop = msgList.scrollHeight;
+    }
+</script>

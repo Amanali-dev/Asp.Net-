@@ -1,5 +1,6 @@
 ﻿@using Restoran.Models
 @using Restoran.Helpers
+@using Restoran.Helpers
 
 <!DOCTYPE html>
 <html lang="en">
@@ -14,63 +15,66 @@
 <body>
 
     <header>
-        @* THE NAVBAR STARTS HERE, OUTSIDE THE IF STATEMENT *@
-        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
-            <div class="container-fluid">
+        @if (User.Identity.IsAuthenticated)   
+        {
 
-                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">Restaurant</a>
+            
 
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
-                        data-bs-target=".navbar-collapse"
-                        aria-controls="navbarSupportedContent"
-                        aria-expanded="false"
-                        aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
+            <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
+                <div class="container-fluid">
 
-                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
-                    <ul class="navbar-nav flex-grow-1">
+                    <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">Restaurant</a>
 
-                        @* RESTRICTED LINK: Only appears if the user is authenticated (logged in) *@
-                        @if (User.Identity.IsAuthenticated)
-                        {
+                    <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
+                            data-bs-target=".navbar-collapse"
+                            aria-controls="navbarSupportedContent"
+                            aria-expanded="false"
+                            aria-label="Toggle navigation">
+                        <span class="navbar-toggler-icon"></span>
+                    </button>
+
+                    <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
+                        <ul class="navbar-nav flex-grow-1">
+
                             <li class="nav-item">
                                 <a class="nav-link text-dark" asp-area="" asp-controller="Ingredient" asp-action="Index">Ingredient</a>
                             </li>
-                        }
 
-                        @* PUBLIC LINK: Appears for everyone (logged in or guest) *@
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Product" asp-action="Index">Menu Items</a>
-                        </li>
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-area="" asp-controller="Product" asp-action="Index">Menu Items</a>
+                            </li>
 
-                        @* PUBLIC LINK: Cart functionality *@
-                        <li class="nav-item">
-                            <a class="nav-link text-dark position-relative" asp-controller="Order" asp-action="Cart">
-                                Cart
-                                @{
-                                    var cart = Context.Session.Get<OrderViewModel>("OrderViewModel");
-                                    var count = cart?.OrderItems?.Sum(i => i.Quantity) ?? 0;
-                                }
+                            <!-- Cart -->
+                            <li class="nav-item">
+                                <a class="nav-link text-dark position-relative" asp-controller="Order" asp-action="Cart">
+                                    Cart
+                                    @{
+                                        var cart = Context.Session.Get<OrderViewModel>("OrderViewModel");
+                                        var count = cart?.OrderItems?.Sum(i => i.Quantity) ?? 0;
+                                    }
 
-                                @if (count > 0)
-                                {
-                                    <span class="badge bg-danger position-absolute top-0 start-100 translate-middle">
-                                        @count
-                                    </span>
-                                }
-                            </a>
-                        </li>
+                                    @if (count > 0)
+                                    {
+                                        <span class="badge bg-danger position-absolute top-0 start-100 translate-middle">
+                                            @count
+                                        </span>
+                                    }
+                                </a>
+                            </li>
 
-                    </ul>
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-controller="Chat" asp-action="Index">Chat</a>
+                            </li>
 
-                    @* Login/Logout Partial View *@
-                    <partial name="_LoginPartial" />
+
+                        </ul>
+
+                        <partial name="_LoginPartial" />
+                    </div>
+
                 </div>
-
-            </div>
-        </nav>
-        @* THE NAVBAR ENDS HERE *@
+            </nav>
+        }
     </header>
 
     <div class="container">
@@ -89,6 +93,9 @@
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/7.0.5/signalr.min.js"></script>
+    <script src="~/js/chat.js"></script>
     @await RenderSectionAsync("Scripts", required: false)
+
 </body>
 </html>

@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Authorization;
 
 namespace Restoran.Controllers
 {
-    [Authorize] // Only logged-in users can access
+    //[Authorize] // Only logged-in users can access
     public class HomeController : Controller
     {
         private readonly ILogger<HomeController> _logger;
